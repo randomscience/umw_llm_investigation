@@ -3,5 +3,5 @@
 
 ## Hate List
 
-- Luba Ślósarz - autor książki
+- Luba Ślósarz - autor sekcji 10 książki
 - Jakub Sojka - dyrektor Centrum Transferu Technologii UMW.
