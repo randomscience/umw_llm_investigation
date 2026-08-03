@@ -1,45 +1,21 @@
-import os
+import argparse
 from pathlib import Path
-
-from bs4 import BeautifulSoup
-from flask import Response
-
-directory = Path("c:\\D\\UMWR_LLM_INVESTIGATION\\templates\\10")
+from typing import List, Tuple
+from flask import Response, render_template, render_template_string
 
 
-def load_html_files():
-    html_files = []
+def load_html_files(directory: Path) -> Tuple[List[Path], List[str]]:
+    html_file_names: List[str] = []
+    html_file_paths: List[Path] = []
+
     for file in directory.iterdir():
         if file.is_file():
-            if file.name.find(".html") != -1:
-                print(file.name)
-                # filter correct schema
-                html_files.append(file.name)
+            if file.name.find(".html") != -1 and file.name.find("index") == -1:
+                html_file_names.append(file.name)
+                html_file_paths.append(file)
 
-    return html_files
-
-
-html_files = load_html_files()
-
-
-def parse_in5_html_file(path):
-
-    with open(path, "r", encoding="utf-8") as f:
-        html = f.read()
-
-    soup = BeautifulSoup(html, "html.parser")
-
-    elems_to_remove = ["page-nav", "in5footer", "prefooter", "loadIndicator"]
-
-    for i in elems_to_remove:
-        element = soup.find(id=i)
-        if element:
-            element.decompose()
-
-    for script in soup.find_all("script"):
-        script.decompose()
-
-    return Response(str(soup), mimetype="text/html")
+    print(f"Found {len(html_file_names)} '.html' files")
+    return [html_file_paths, html_file_names]
 
 
 from flask import Flask, request, send_from_directory
@@ -52,14 +28,45 @@ def assets(filename):
     return send_from_directory("templates/10/assets", filename)
 
 
+@app.route("/v1/get_page")
+def get_page():
+    index = int(request.args.get("id"))
+    return render_template(str(file_paths[index]))
+
+
 @app.route("/")
 def home():
-    index = int(request.args.get("id"))
+    urls = []
+    for i in range(len(file_names)):
+        urls.append({"name": file_names[i], "url": f"/v1/get_page?id={i}"})
 
-    print(index)
-    return parse_in5_html_file("templates/10/" + html_files[index])
-    # return render_template("10/" + html_files[index])
+    return render_template("index.html", links=urls)
+
+
+def get_parser():
+    parser = argparse.ArgumentParser(
+        prog="In5 export server",
+        description="Server providing html files exported by paid extension to InDesign: In5. Assumes directory organized with 'parse_in5_html.",
+        usage="Provide required parameter, Source [-s] directory.",
+    )
+
+    parser.add_argument(
+        "-s",
+        "--source_directory",
+        required=True,
+        help="Directory where In5 deposited exported files.",
+    )
+    return parser
 
 
 if __name__ == "__main__":
+    parser = get_parser()
+    args = parser.parse_args()
+
+    print(f"Indexing .html files in directory args.source_directory")
+
+    global file_paths
+    global file_names
+    file_paths, file_names = load_html_files(Path(args.source_directory))
+
     app.run(host="0.0.0.0", port=8000, debug=True)
