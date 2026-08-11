@@ -1,2 +1,6 @@
+
+// server requirements 
 Flask
-beautifulsoup4
+beautifulsoup4 // for html file parsing
+python-dotenv
+

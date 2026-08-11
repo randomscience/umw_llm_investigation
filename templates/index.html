@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <title>In5 export server</title>
+
+    <style>
+        :root {
+            box-sizing: border-box;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            display: flex;
+            background: #f4f4f5;
+            color: #1f2937;
+        }
+
+        .app-shell {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+            justify-content: flex-end;
+        }
+
+        .panel {
+            padding: 24px;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            flex: 1 1 auto;
+            min-width: 0;
+            background: #ffffff;
+            border-right: 1px solid #d1d5db;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .right-panel {
+            flex: 0 0 auto;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            background: #111827;
+            color: #f9fafb;
+        }
+
+        .chat-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            min-height: 0;
+        }
+
+        .toggle-toolbar,
+        .left-toggle-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .app-shell:not(.chat-hidden) .left-toggle-toolbar {
+            display: none;
+        }
+
+        .app-shell.chat-hidden .left-panel {
+            width: 100%;
+            border-right: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .app-shell.chat-hidden .left-panel .content {
+            text-align: center;
+            max-width: 760px;
+        }
+
+        .content {
+            max-width: 560px;
+        }
+
+        .content h1 {
+            margin-top: 0;
+            font-size: 2rem;
+            line-height: 1.2;
+        }
+
+        .content p {
+            margin: 1rem 0;
+            color: #4b5563;
+        }
+
+        .chat-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+
+        .chat-header {
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .chat-toggle {
+            padding: 10px 16px;
+            height: 40px;
+            border: none;
+            /* border-radius: 9999px; */
+            background: rgba(255, 255, 255, 0.12);
+            color: #1f2937;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .chat-toggle:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .app-shell.chat-hidden .right-panel {
+            display: none;
+
+        }
+
+        .app-shell.chat-hidden .left-panel {
+            width: 100%;
+            border-right: none;
+        }
+
+        .chat-messages {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: #2563eb;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            color: #f8fafc;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-area {
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 16px;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            color: #f9fafb;
+            outline: none;
+        }
+
+        .chat-input::placeholder {
+            color: rgba(249, 250, 251, 0.7);
+        }
+
+        .send-button {
+            padding: 0 20px;
+            border: none;
+            border-radius: 9999px;
+            background: #10b981;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .send-button:hover {
+            background: #059669;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+
+            .left-panel,
+            .right-panel {
+                width: 100%;
+            }
+
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid #d1d5db;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-shell">
+        <section class="panel left-panel">
+            <div class="left-toggle-toolbar">
+            </div>
+            <div class="content">
+                <h1>Welcome to the LLM Assistant</h1>
+                <p>Use the chat panel on the right to ask questions, explore ideas, or walk through your documents with
+                    an intelligent assistant.</p>
+                <p>This layout keeps explanatory text and guidance on the left while the chat interaction remains
+                    visible and easy to use.</p>
+                <p>Type your prompt below and hit send to start the conversation.</p>
+            </div>
+        </section>
+        <button class="chat-toggle" id="chatToggle">Hide chat</button>
+
+        <section class="panel right-panel">
+            <div class="chat-window">
+                <div class="chat-header">
+                    <div>
+                        <h2 style="margin: 0;">Ask about the book</h2>
+                    </div>
+                    <select id="endpointSelect" class="endpoint-select">
+                        <option value="./v1/prompt">./v1/prompt</option>
+                        <option value="./v1/assistant_prompt">./v1/assistant_prompt</option>
+                    </select>
+                </div>
+                <div class="chat-messages">
+                    <div class="message assistant">This is costly, but ask away... It's not me paying</div>
+                </div>
+                <div class="chat-input-area">
+                    <input class="chat-input" type="text" id="queryValue" placeholder="Type your message..." />
+                    <button class="send-button" id="sendQuery">Send</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const appShell = document.querySelector('.app-shell');
+        const toggleButtons = document.querySelectorAll('.chat-toggle');
+
+        toggleButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const hidden = appShell.classList.toggle('chat-hidden');
+                const label = hidden ? '<<' : '>>';
+                toggleButtons.forEach((btn) => btn.textContent = label);
+            });
+        });
+    </script>
+
+
+    <script>
+        const sendButton = document.getElementById('sendQuery');
+        const query = document.getElementById('queryValue');
+        const endpointSelect = document.getElementById('endpointSelect');
+        const chatMessages = document.querySelector('.chat-messages');
+        const chatHistory = {};
+        let chatMessageId = 0;
+
+        function storeChatMessage(text, role = 'assistant') {
+            chatMessageId += 1;
+            const message = {
+                id: chatMessageId,
+                role,
+                text,
+                timestamp: new Date().toISOString(),
+            };
+            chatHistory[chatMessageId] = message;
+            return message;
+        }
+
+
+        function appendChatMessage(text, role = 'assistant') {
+            storeChatMessage(text, role);
+            const message = document.createElement('div');
+            message.className = `message ${role}`;
+            message.innerHTML = marked.parse(text);
+            chatMessages.appendChild(message);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendChatMessage() {
+            const userText = query.value.trim();
+            if (!userText) {
+                return;
+            }
+
+            appendChatMessage(userText, 'user');
+            query.value = '';
+
+            const endpoint = endpointSelect.value || "./v1/assistant_prompt";
+            const resp = await fetch(endpoint, {
+                method: "POST",
+                body: JSON.stringify({
+                    response_language: 'pl',
+                    prompt_context: [],
+                    prompt: userText,
+                    user_id: "A very unique id",
+                    conversation_id: "hmmm some cool conversation_id",
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            });
+
+            const data = await resp.json();
+            console.log(resp.status);
+            console.log(data);
+
+            const responseText = data.markdown_response || 'No response returned';
+            appendChatMessage(responseText, 'assistant');
+        }
+
+        sendButton.addEventListener('click', sendChatMessage);
+        query.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        });
+    </script>
+</body>
+
+</html>

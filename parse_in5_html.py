@@ -26,12 +26,21 @@ def parse_in5_html_file(file_path: Path, target_path: Path):
 
     with open(file_path, "r", encoding="utf-8") as f:
         html = f.read()
-    
+
     html = html.replace("﻿", "")
-    
+
     soup = BeautifulSoup(html, "html.parser")
 
-    elems_to_remove = ["page-nav", "in5footer", "prefooter", "loadIndicator"]
+    elems_to_remove = [
+        "page-nav",
+        "in5footer",
+        "prefooter",
+        "loadIndicator",
+    ]
+
+    # TODO remove everything but  <div class="page"> or container and add chapter id and page id
+    # TODO change .css file name to chapter id
+    # TODO unique id to every text box
 
     for i in elems_to_remove:
         element = soup.find(id=i)
