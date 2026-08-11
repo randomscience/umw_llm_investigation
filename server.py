@@ -1,5 +1,9 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import argparse
 from dataclasses import dataclass
+import os
 from pathlib import Path
 from typing import List, Tuple
 from flask import Response, json, render_template, render_template_string
@@ -151,6 +155,7 @@ def assistant_prompt():
             "chat_model": "google_genai:gemini-3.6-flash",
         },
         http_status_code=200,
+        tk_tokens_used=tokens_used,
     ).to_flask_resp()
 
 
@@ -186,7 +191,7 @@ def prompt():
         prompt=data.prompt,
         user_id=data.user_id,
         conversation_id=data.conversation_id,
-        tokens_used=tokens_used,
+        tk_tokens_used=tokens_used,
         markdown_response=markdown_response,
         files_utilized=[],
         models_used={

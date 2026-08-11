@@ -19,11 +19,11 @@ from langchain.chat_models import init_chat_model
 
 from langchain.messages import HumanMessage
 
-os.environ["LANGSMITH_TRACING"] = "<bool>"
-os.environ["LANGSMITH_ENDPOINT"] = "<url>"
-os.environ["LANGSMITH_API_KEY"] = "<key>"
-os.environ["LANGSMITH_PROJECT"] = "UMW LLM Investigation"
-os.environ["GOOGLE_API_KEY"] = "<key>"
+# os.environ["LANGSMITH_TRACING"] = "<bool>"
+# os.environ["LANGSMITH_ENDPOINT"] = "<url>"
+# os.environ["LANGSMITH_API_KEY"] = "<key>"
+# os.environ["LANGSMITH_PROJECT"] = "UMW LLM Investigation"
+# os.environ["GOOGLE_API_KEY"] = "<key>"
 
 
 

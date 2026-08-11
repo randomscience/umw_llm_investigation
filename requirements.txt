@@ -1,6 +1,12 @@
 
 // server requirements 
 Flask
-beautifulsoup4 // for html file parsing
+beautifulsoup4
 python-dotenv
+langchain
+langchain[google-genai]
+deepagents
+langchain-text-splitters
 
+ruff
+black
