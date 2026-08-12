@@ -33,7 +33,7 @@ We should use [Gemini Embedding 2](https://ai.google.dev/gemini-api/docs/embeddi
 - [x] Access token validation with request -> add header 
 - [x] Support for response languages -> from user param <low priority> 
 - [x] Docker and hosting
-- [ ] Mock endpoint returning some answer in markdown
+- [x] Mock endpoint returning some answer in markdown
 - [x] add missing libraries to .requirements
 - [ ] Parse model output and isolate "path: str  # <rozdział>/<name>.html  eg. "10/0014.html"" and "ids_to_highlight: List[str]  # ["item31989"] can be empty" 
 - [x] find a way to make 'prompt' dumber and quicker
