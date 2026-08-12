@@ -16,7 +16,6 @@ from pydantic_input_output import FileUsedV1 as LLMHighlight
 from pydantic_input_output import LLMEndpointInputV1 as LLMRequest
 from pydantic_input_output import LLMEndpointOutputV1 as LLMResponse
 from rag import RAGClient
-from utils import verify_token
 
 setup_logging()
 logger = logging.getLogger(__name__)
