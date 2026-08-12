@@ -24,19 +24,19 @@ We should use [Gemini Embedding 2](https://ai.google.dev/gemini-api/docs/embeddi
 
 
 # TODO
-1. Cache vector_store [IN MEMORY VECTOR STORE] -> 
-2. LLM Model ERRORS handling: 
-   1. No mony left - no tokens 
-   2. Rate limit exceeded error
-3. Error logging 
-4. Access token validation with request -> add header 
-5. Support prompt_context passed by user -> define struct correctly, parse input from user, pass to model
-6. Support for response languages -> from user param <low priority> 
-7. Docker and hosting
-8. Mock endpoint returning some answer in markdown
-9. add missing libraries to .requirements
-10. Parse model output and isolate "path: str  # <rozdział>/<name>.html  eg. "10/0014.html"" and "ids_to_highlight: List[str]  # ["item31989"] can be empty" 
-11. find a way to make 'prompt' dumber and quicker
+- [ ] Support prompt_context passed by user -> define struct correctly, parse input from user, pass to model
+- [x] Cache vector_store [IN MEMORY VECTOR STORE] -> 
+- [ ] LLM Model ERRORS handling: 
+   - [ ] No mony left - no tokens 
+   - [x] Rate limit exceeded error - this should be done on a user level 
+- [x] Error logging 
+- [x] Access token validation with request -> add header 
+- [x] Support for response languages -> from user param <low priority> 
+- [x] Docker and hosting
+- [ ] Mock endpoint returning some answer in markdown
+- [x] add missing libraries to .requirements
+- [ ] Parse model output and isolate "path: str  # <rozdział>/<name>.html  eg. "10/0014.html"" and "ids_to_highlight: List[str]  # ["item31989"] can be empty" 
+- [x] find a way to make 'prompt' dumber and quicker
 
 # 
-11. Improve how frontend looks 
+11. Improve how frontend looks
