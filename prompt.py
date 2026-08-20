@@ -9,7 +9,7 @@ def get_prompt(query, retrieved, language):
     )
 
     prompt = f"""
-    Answer the question using only the provided sources.
+    Answer the question using only the provided sources and previous conversation context.
 
     The language to use is {language}
 

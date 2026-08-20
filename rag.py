@@ -175,10 +175,11 @@ class RAGClient:
         retrieved = get_top_k(self.documents, k)
         return retrieved
 
-    def generate_content(self, prompt):
-        response = self.client.models.generate_content(
+    def generate_content(self, prompt, conversation_id):
+        response = self.client.interactions.create(
             model=self.model,
-            contents=prompt,
+            input=prompt,
+            previous_interaction_id=conversation_id,
         )
         return response
 

@@ -16,6 +16,7 @@ from pydantic_input_output import FileUsedV1 as LLMHighlight
 from pydantic_input_output import LLMEndpointInputV1 as LLMRequest
 from pydantic_input_output import LLMEndpointOutputV1 as LLMResponse
 from rag import RAGClient
+from google.genai._gaos.lib.compat_errors import BadRequestError as GemminiBadRequest
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -96,23 +97,29 @@ def rag(llm_request: LLMRequest, mock: bool = False) -> LLMResponse:
         client, HTML_DIR, GENERATION_MODEL, EMBEDDING_MODEL, MIN_TEXT_LENGTH, CACHE_FILE
     )
 
-    retrieved = rag.get_sources(llm_request.prompt, k=5)
-    prompt = get_prompt(llm_request.prompt, retrieved, llm_request.response_language)
-    response = rag.generate_content(prompt)
+    try:
+        retrieved = rag.get_sources(llm_request.prompt, k=5)
+        prompt = get_prompt(llm_request.prompt, retrieved, llm_request.response_language)
+        response = rag.generate_content(prompt, llm_request.previous_message_id)
 
-    return LLMResponse(
-        response_language=llm_request.response_language,
-        prompt=llm_request.prompt,
-        user_id=llm_request.user_id,
-        conversation_id=llm_request.conversation_id,
-        tk_tokens_used=response.usage_metadata.total_token_count,
-        markdown_response=response.text,
-        files_utilized=[
-            LLMHighlight(
-                path=doc["file"],
-                ids_to_highlight=[doc["div_id"]],
-            )
-            for doc in retrieved
-        ],
-        models_used={"embedding": EMBEDDING_MODEL, "generation": GENERATION_MODEL},
-    )
+        return LLMResponse(
+            response_language=llm_request.response_language,
+            prompt=llm_request.prompt,
+            user_id=llm_request.user_id,
+            conversation_id=llm_request.conversation_id,
+            message_id=response.id,
+            tk_tokens_used=response.usage.total_tokens,
+            markdown_response=response.output_text,
+            files_utilized=[
+                LLMHighlight(
+                    path=doc["file"],
+                    ids_to_highlight=[doc["div_id"]],
+                )
+                for doc in retrieved
+            ],
+            models_used={"embedding": EMBEDDING_MODEL, "generation": GENERATION_MODEL},
+        )
+    except GemminiBadRequest as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Server error")
