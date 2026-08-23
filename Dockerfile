@@ -1,5 +1,6 @@
 FROM python:3.12-slim
 
+ENV EMBEDDINGS_URL="https://work.randomscience.org/s/NJwfWn9GWasZzk4/download"
 WORKDIR /app
 
 COPY requirements.txt .
@@ -12,7 +13,9 @@ COPY prompt.py prompt.py
 COPY logging_config.py logging_config.py
 COPY rag.py rag.py
 COPY app.py app.py
+COPY scripts/download_embeddings.py download_embeddings.py
 
+RUN python download_embeddings.py
 
 EXPOSE 8000
 
