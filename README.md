@@ -25,6 +25,7 @@ We should use [Gemini Embedding 2](https://ai.google.dev/gemini-api/docs/embeddi
 
 # TODO
 - [ ] Support prompt_context passed by user -> define struct correctly, parse input from user, pass to model
+- [x] Conversation history 
 - [x] Cache vector_store [IN MEMORY VECTOR STORE] -> 
 - [ ] LLM Model ERRORS handling: 
    - [ ] No mony left - no tokens 
