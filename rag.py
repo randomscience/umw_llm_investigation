@@ -36,7 +36,9 @@ def parse_documents(files_path, min_text_length):
             documents.append(
                 {
                     "text": text,
-                    "file": str(path.relative_to(files_path)),
+                    # POSIX separators keep the embedding cache key
+                    # platform-independent (Windows vs Linux)
+                    "file": path.relative_to(files_path).as_posix(),
                     "div_id": div["id"],
                 }
             )
@@ -206,7 +208,7 @@ def main():
     query = input("\nQuestion: ")
     retrieved = rag.get_sources(query, k=5)
     prompt = get_prompt(query, retrieved, "pl")
-    response = rag.generate_content(prompt)
+    response = rag.generate_content(prompt, None)
 
     print(response.text)
 
