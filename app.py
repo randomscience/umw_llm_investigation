@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 API_TOKENS = os.environ.get("API_TOKENS", "").split(",")
-HTML_DIR = Path(os.environ.get("BOOK_DIR", "templates/10"))
+HTML_DIR = Path(os.environ.get("BOOK_DIR", "templates/export_final"))
 GENERATION_MODEL = os.environ.get("GENERATION_MODEL", "gemini-3.6-flash")
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "gemini-embedding-2")
 MIN_TEXT_LENGTH = int(os.environ.get("MIN_TEXT_LENGTH", 200))
