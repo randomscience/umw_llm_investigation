@@ -57,10 +57,11 @@ class LLMEndpointOutputV1(BaseModel):
             conversation_id="mock_conversation_id",
             message_id="v1_mock_message_id",
             tk_tokens_used=2457,
-            markdown_response="Mock markdown response: Na podstawie dostarczonych źródeł, DSM-5 (*Diagnostic and Statistical Manual of Mental Disorders, fifth edition*) to piąta edycja podręcznika wydanego przez American Psychiatric Association (Amerykańskie Towarzystwo Psychiatryczne). Polski tytuł tego opracowania to *Kryteria diagnostyczne zaburzeń psychicznych DSM-5*.\n\nŹródła:\n- SOURCE: 0004.html#item32345\n- SOURCE: 0006.html#item32720",
+            markdown_response="Mock markdown response: Na podstawie dostarczonych źródeł, DSM-5 (*Diagnostic and Statistical Manual of Mental Disorders, fifth edition*) to piąta edycja podręcznika wydanego przez American Psychiatric Association (Amerykańskie Towarzystwo Psychiatryczne). Polski tytuł tego opracowania to *Kryteria diagnostyczne zaburzeń psychicznych DSM-5*.",
             files_utilized=[
                 FileUsedV1(path="12.html", ids_to_highlight=["item21425"]),
                 FileUsedV1(path="13.html", ids_to_highlight=["item12706"]),
+                FileUsedV1(path="557.html", ids_to_highligt=["item46340"]),
             ],
             models_used={
                 "embedding": "mock_embedding_model",
