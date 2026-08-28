@@ -61,6 +61,7 @@ class LLMEndpointOutputV1(BaseModel):
             files_utilized=[
                 FileUsedV1(path="12.html", ids_to_highlight=["item21425"]),
                 FileUsedV1(path="13.html", ids_to_highlight=["item12706"]),
+                FileUsedV1(path="557.html", ids_to_highligt=["item46340"]),
             ],
             models_used={
                 "embedding": "mock_embedding_model",
