@@ -9,19 +9,17 @@ def get_prompt(query, retrieved, language):
     )
 
     prompt = f"""
-    Answer the question using only the provided sources and previous conversation context.
+    Answer the question using only the provided exerts from the book and previous conversation context.
 
     The language to use is {language}
 
-    If the information is not present in the sources,
-    say that you don't know.
+    If the information is not present in the sources, answer "Nie mogę znaleźć informacji na ten temat w książce"
 
     Question:
     {query}
 
     Sources:
     {context}
-
-    At the end, provide the source locations you used.
     """
+    print(prompt)
     return prompt
