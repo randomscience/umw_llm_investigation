@@ -30,6 +30,8 @@ def parse_documents(files_path, min_text_length):
 
             text = div.get_text(" ", strip=True)
 
+            text = f"Na stronie {file_index} napisane jest: " + text
+
             if not text or len(text.strip()) < min_text_length:
                 continue
 
