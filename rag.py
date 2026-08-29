@@ -166,7 +166,6 @@ def create_embeddings_for_documents(
         for (doc, cache_key), embedding in zip(chunk, embeddings):
             doc["embedding"] = embedding
             cache[cache_key] = embedding.tolist()
-            api_count += 1
 
     save_embedding_cache(cache, cache_file)
 
