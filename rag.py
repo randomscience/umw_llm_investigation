@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import os
 from pathlib import Path
 
 import numpy as np
@@ -16,21 +17,24 @@ logger = logging.getLogger(__name__)
 def parse_documents(files_path, min_text_length):
     documents = []
 
-    for file_index, path in enumerate(files_path.rglob("*.html")):
+    for path in files_path.rglob("*.html"):
 
         soup = BeautifulSoup(
             path.read_text(encoding="utf-8"),
             "html.parser",
         )
 
-        for div_index, div in enumerate(soup.find_all("div", id=True)):
+        for div in soup.find_all("div", id=True):
 
             if not str(div["id"]).startswith("item"):
                 continue
 
             text = div.get_text(" ", strip=True)
 
-            text = f"Na stronie {file_index} napisane jest: " + text
+            # Page number comes from the file name (e.g. 865.html -> page 865)
+            # instead of the enumeration index, which depends on the traversal
+            # order and would invalidate the whole embedding cache on any change.
+            text = f"Na stronie {path.stem} napisane jest: " + text
 
             if not text or len(text.strip()) < min_text_length:
                 continue
@@ -55,8 +59,15 @@ def load_embedding_cache(cache_file):
         logger.info("No embedding cache found.")
         return {}
 
-    with cache_file.open("r", encoding="utf-8") as f:
-        cache = json.load(f)
+    try:
+        with cache_file.open("r", encoding="utf-8") as f:
+            cache = json.load(f)
+    except json.JSONDecodeError:
+        logger.warning(
+            "Embedding cache is corrupted (%s); rebuilding it.",
+            cache_file,
+        )
+        return {}
 
     logger.info(f"Loaded {len(cache)} cached embeddings")
 
@@ -64,8 +75,12 @@ def load_embedding_cache(cache_file):
 
 
 def save_embedding_cache(cache, cache_file):
-    with cache_file.open("w", encoding="utf-8") as f:
+    # Write atomically so an interrupted process never leaves a
+    # truncated JSON file that invalidates the whole cache.
+    tmp_file = cache_file.with_name(cache_file.name + ".tmp")
+    with tmp_file.open("w", encoding="utf-8") as f:
         json.dump(cache, f)
+    os.replace(tmp_file, cache_file)
 
 
 def get_embedding_cache_key(doc, embedding_model):
@@ -107,9 +122,9 @@ def create_embeddings_for_documents(client, documents, embedding_model, cache_fi
             embedding = create_embedding(client, doc["text"], embedding_model)
             doc["embedding"] = embedding
             cache[cache_key] = embedding.tolist()
-
-            save_embedding_cache(cache, cache_file)
             api_count += 1
+
+    save_embedding_cache(cache, cache_file)
 
     logger.info(f"Loaded embeddings: Cached: {cached_count}, API: {api_count}")
 
@@ -197,7 +212,7 @@ def main():
 
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-    HTML_DIR = Path("templates/10")
+    HTML_DIR = Path("templates/export_parsed")
     GENERATION_MODEL = "gemini-3.6-flash"
     EMBEDDING_MODEL = "gemini-embedding-2"
     MIN_TEXT_LENGTH = 200
