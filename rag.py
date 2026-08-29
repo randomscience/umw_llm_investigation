@@ -2,16 +2,21 @@ import hashlib
 import json
 import logging
 import os
+import time
 from pathlib import Path
 
 import numpy as np
 from bs4 import BeautifulSoup
 from bs4.builder import HTML, HTML_5
 from google import genai
+from google.genai import errors
 
 from prompt import get_prompt
 
 logger = logging.getLogger(__name__)
+
+EMBEDDING_BATCH_SIZE = 32
+TRANSIENT_ERROR_CODES = {408, 429, 500, 502, 503, 504}
 
 
 def parse_documents(files_path, min_text_length):
@@ -91,25 +96,55 @@ def get_embedding_cache_key(doc, embedding_model):
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
+def create_embeddings(client, texts, model, retries=5, base_delay=2.0):
+    # gemini-embedding-2 aggregates plain strings into a single embedding.
+    # Wrapping each text in a Content object returns one embedding per input.
+    contents = [genai.types.Content(parts=[genai.types.Part(text=t)]) for t in texts]
+
+    last_error = None
+    for attempt in range(retries):
+        try:
+            result = client.models.embed_content(model=model, contents=contents)
+            embeddings = [
+                np.array(emb.values, dtype=np.float32) for emb in result.embeddings
+            ]
+            if len(embeddings) != len(texts):
+                raise RuntimeError(
+                    f"Expected {len(texts)} embeddings, got {len(embeddings)}"
+                )
+            return embeddings
+        except errors.APIError as e:
+            if e.code not in TRANSIENT_ERROR_CODES:
+                raise
+            last_error = e
+            delay = base_delay * (2**attempt)
+            logger.warning(
+                "Embedding API error (%s), retrying in %.1fs",
+                e.code,
+                delay,
+            )
+            time.sleep(delay)
+
+    raise last_error
+
+
 def create_embedding(client, text, model):
-    result = client.models.embed_content(
-        model=model,
-        contents=text,
-    )
-
-    return np.array(
-        result.embeddings[0].values,
-        dtype=np.float32,
-    )
+    return create_embeddings(client, [text], model)[0]
 
 
-def create_embeddings_for_documents(client, documents, embedding_model, cache_file):
+def create_embeddings_for_documents(
+    client,
+    documents,
+    embedding_model,
+    cache_file,
+    batch_size=EMBEDDING_BATCH_SIZE,
+):
     cache = load_embedding_cache(cache_file)
 
     cached_count = 0
-    api_count = 0
+    pending = []
 
-    for i, doc in enumerate(documents):
+    for doc in documents:
         cache_key = get_embedding_cache_key(doc, embedding_model)
 
         if cache_key in cache:
@@ -119,14 +154,25 @@ def create_embeddings_for_documents(client, documents, embedding_model, cache_fi
             )
             cached_count += 1
         else:
-            embedding = create_embedding(client, doc["text"], embedding_model)
+            pending.append((doc, cache_key))
+
+    for start in range(0, len(pending), batch_size):
+        chunk = pending[start : start + batch_size]
+        embeddings = create_embeddings(
+            client,
+            [doc["text"] for doc, _ in chunk],
+            embedding_model,
+        )
+        for (doc, cache_key), embedding in zip(chunk, embeddings):
             doc["embedding"] = embedding
             cache[cache_key] = embedding.tolist()
             api_count += 1
 
     save_embedding_cache(cache, cache_file)
 
-    logger.info(f"Loaded embeddings: Cached: {cached_count}, API: {api_count}")
+    logger.info(
+        f"Loaded embeddings: Cached: {cached_count}, API: {len(pending)}"
+    )
 
     return documents
 

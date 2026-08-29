@@ -38,6 +38,4 @@ We should use [Gemini Embedding 2](https://ai.google.dev/gemini-api/docs/embeddi
 - [x] add missing libraries to .requirements
 - [ ] Parse model output and isolate "path: str  # <rozdział>/<name>.html  eg. "10/0014.html"" and "ids_to_highlight: List[str]  # ["item31989"] can be empty" 
 - [x] find a way to make 'prompt' dumber and quicker
-
-# 
-11. Improve how frontend looks
+- [x] Implement batched embedding calculation
