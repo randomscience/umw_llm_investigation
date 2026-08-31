@@ -1,2 +1,10 @@
 Flask
 beautifulsoup4
+python-dotenv
+langchain
+langchain[google-genai]
+deepagents
+langchain-text-splitters
+numpy
+fastapi[standard]
+

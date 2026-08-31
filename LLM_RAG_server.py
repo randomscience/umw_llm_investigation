@@ -5,12 +5,13 @@ from typing import Dict, List, Tuple
 from deepagents import create_deep_agent
 from flask import Response, render_template, render_template_string
 
-from alpha_model import INSTRUCTIONS, init_argentic_model_params, load_documents
+from RAG_alpha_model import INSTRUCTIONS, init_argentic_model_params, load_documents
 
 
 from langchain.messages import HumanMessage
 from flask import Flask, request, send_from_directory
 
+app = Flask(__name__)
 
 def load_html_files(directory: Path) -> Tuple[List[Path], List[str]]:
     html_file_names: List[str] = []
@@ -24,9 +25,6 @@ def load_html_files(directory: Path) -> Tuple[List[Path], List[str]]:
 
     print(f"Found {len(html_file_names)} '.html' files")
     return [html_file_paths, html_file_names]
-
-
-app = Flask(__name__)
 
 
 def get_parser():
@@ -45,44 +43,6 @@ def get_parser():
     return parser
 
 
-@dataclass
-class LLMEndpointInputV1:
-    # supported languages: pl
-    response_language: str
-
-    prompt: str  # max 1000 znaków
-
-    user_id: str
-    conversation_id: str  # !important
-
-
-@dataclass
-class FileUsedV1:
-    path: str  # <rozdział>/<name>.html  eg. "10/0014.html"
-    ids_to_highlight: List[str]  # ["item31989"] can be empty
-
-
-@dataclass
-class LLMEndpointOutputV1:
-    # supported languages: pl
-    response_language: str
-
-    prompt_context: List[
-        str
-    ]  # list of prompts / responses user had  # prep json struct
-
-    prompt: str
-    user_id: str
-    conversation_id: str
-
-    ###
-    # for this prompt
-    tokens_used: int  # Who monitors token usage per user? - ariel
-
-    ###
-    markdown_response: str
-    files_utilized: List[FileUsedV1]
-
 
 @app.route("/alpha_agent")
 def get_agent_resp():
@@ -92,7 +52,9 @@ def get_agent_resp():
     for msg in result.get("messages", []):
         if msg.text:
             print(msg.text)
-    return Response
+
+    return Response()
+
 
 
 if __name__ == "__main__":
