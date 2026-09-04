@@ -11,7 +11,7 @@ from google import genai
 from starlette.requests import Request
 
 from logging_config import setup_logging
-from prompt import get_prompt
+from prompt import get_prompt, get_not_found_message
 from pydantic_input_output import FileUsedV1 as LLMHighlight
 from pydantic_input_output import LLMEndpointInputV1 as LLMRequest
 from pydantic_input_output import LLMEndpointOutputV1 as LLMResponse
@@ -35,12 +35,13 @@ app = FastAPI(title="UMW LLM", version="0.1.0")
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(
+    logger.exception(
         "Unhandled exception: %s %s (%s)",
         request.method,
         request.url,
         exc,
         stack_info=True,
+        stacklevel=10,
     )
 
     return JSONResponse(
@@ -102,6 +103,20 @@ def rag(llm_request: LLMRequest, mock: bool = False) -> LLMResponse:
         prompt = get_prompt(llm_request.prompt, retrieved, llm_request.response_language)
         response = rag.generate_content(prompt, llm_request.previous_message_id)
 
+        highlights = [
+            LLMHighlight(
+                path=doc["file"],
+                ids_to_highlight=[doc["div_id"]],
+            )
+            for doc in retrieved
+        ]
+
+        response_text = response.output_text
+
+        # If the message is the "not found" message don't show the sources
+        if get_not_found_message() in response_text:
+            highlights = []
+
         return LLMResponse(
             response_language=llm_request.response_language,
             prompt=llm_request.prompt,
@@ -109,17 +124,13 @@ def rag(llm_request: LLMRequest, mock: bool = False) -> LLMResponse:
             conversation_id=llm_request.conversation_id,
             message_id=response.id,
             tk_tokens_used=response.usage.total_tokens,
-            markdown_response=response.output_text,
-            files_utilized=[
-                LLMHighlight(
-                    path=doc["file"],
-                    ids_to_highlight=[doc["div_id"]],
-                )
-                for doc in retrieved
-            ],
+            markdown_response=response_text,
+            files_utilized=highlights,
             models_used={"embedding": EMBEDDING_MODEL, "generation": GENERATION_MODEL},
         )
     except GemminiBadRequest as e:
+        logger.exception(f"Gemmini error {e}", stack_info=True, stacklevel=10)
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logger.exception(f"Server error: {e}", stack_info=True, stacklevel=10)
         raise HTTPException(status_code=500, detail="Server error")

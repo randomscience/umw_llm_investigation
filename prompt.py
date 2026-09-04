@@ -1,3 +1,6 @@
+def get_not_found_message():
+    return "Nie mogę znaleźć informacji na ten temat w książce"
+
 def get_prompt(query, retrieved, language):
     context = "\n\n".join(
         f"""
@@ -13,7 +16,7 @@ def get_prompt(query, retrieved, language):
 
     The language to use is {language}
 
-    If the information is not present in the sources, answer "Nie mogę znaleźć informacji na ten temat w książce"
+    If the information is not present in the sources, answer "{get_not_found_message()}"
 
     Question:
     {query}
@@ -21,5 +24,4 @@ def get_prompt(query, retrieved, language):
     Sources:
     {context}
     """
-    print(prompt)
     return prompt

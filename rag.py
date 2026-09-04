@@ -272,7 +272,7 @@ def main():
     prompt = get_prompt(query, retrieved, "pl")
     response = rag.generate_content(prompt, None)
 
-    print(response.text)
+    print(response)
 
 
 if __name__ == "__main__":
